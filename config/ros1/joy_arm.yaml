@@ -1,0 +1,27 @@
+control_rate: 1000.0  # control-loop frequency used to calculate dt 
+model_urdf: ""  # robot URDF path for FK/IK
+model_frame_id: "base_link"  # frame used by target markers and model state
+pose_end_in_flange: [0.187, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]  # end pose relative to flange
+joystick_deadzone: 0.1  # analog joystick axis deadzone for LX/LY/RX/RY 
+joystick_linear_xy: 1.0  # LX/LY to target X/Y instantaneous velocity scale 
+joystick_linear_z: 1.0  # RY to target Z instantaneous velocity scale 
+joystick_angular: 1.0  # RX/hat to target angular velocity scale 
+joint_step_limit: 0.05  # maximum stable/reset joint-position step per cycle
+position_step_limit: 0.01  # maximum Cartesian position step sent to IK per cycle 
+stable_radius_min: 0.2  # minimum distance from base origin to stable point
+stable_radius_max: 0.9  # maximum distance from base origin to stable point
+
+
+stable_joint: [0.0, -0.02, 2.6, -1.0, 0.0, 0.0]  # stable initialization/reset joint target 
+stable_in_end: [0.0, 0.0, 0.17, 0.7071068, 0.0, -0.7071068, 0.0]  # stable-point pose relative to end frame
+gravity: [0.0, 0.0, -9.81]  # gravity acceleration vector 
+arm_stable_kp: [200.0, 200.0, 250.0, 150.0, 100.0, 100.0]  # stable-position arm stiffness
+arm_stable_kd: [5.0, 5.0, 5.0, 5.0, 2.0, 2.0]  # stable-position arm damping
+arm_impedance_kp: [200.0, 200.0, 250.0, 150.0, 100.0, 100.0]  # work arm stiffness
+arm_impedance_kd: [5.0, 5.0, 5.0, 5.0, 2.0, 2.0]  # work arm damping
+grip_stable_kp: [10.0]  # stable-position gripper stiffness
+grip_stable_kd: [0.5]  # stable-position gripper damping
+grip_impedance_kp: [10.0]  # work gripper stiffness
+grip_impedance_kd: [0.5]  # work gripper damping
+gripper_enabled: true  # enable gripper control
+gripper_target: 0.6  # gripper joint target while A is held 

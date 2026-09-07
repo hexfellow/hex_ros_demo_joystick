@@ -1,0 +1,65 @@
+<!--#######################################-->
+<!-- Copyright (c) 2026  Dong Zhaorui.     -->
+<!-- All rights reserved.                  -->
+<!-- Author: Dong Zhaorui 847235539@qq.com -->
+<!-- Date  : 2026-06-30                    -->
+<!--#######################################-->
+
+<launch>
+    <!-- launch arguments -->
+    <arg name="viewer" default="true"/>
+    <arg name="rviz" default="true"/>
+    <arg name="device_path" default=""/>
+    <arg name="use_sim_time" default="true"/>
+
+    <!-- MuJoCo simulation -->
+    <include file="$(find hex_ros_sim_archer_y6)/launch/ros1/sim_archer_y6.launch">
+        <arg name="viewer" value="$(arg viewer)"/>
+        <arg name="rviz" value="false"/>
+        <arg name="test" value="false"/>
+    </include>
+
+    <!-- joystick teleoperation -->
+    <node name="teleop_joystick"
+          pkg="hex_ros_teleop_joystick"
+          type="teleop_joystick.py"
+          output="screen">
+        <rosparam file="$(find hex_ros_teleop_joystick)/config/ros1/params.yaml"/>
+        <param name="device_path" value="$(arg device_path)"/>
+        <param name="use_sim_time" value="$(arg use_sim_time)"/>
+        <remap from="teleop_joy_state" to="teleop_joy_state"/>
+    </node>
+
+    <!-- joystick arm controller -->
+    <node name="joy_arm"
+          pkg="hex_ros_demo_joystick"
+          type="joy_arm.py"
+          output="screen">
+        <rosparam file="$(find hex_ros_demo_joystick)/config/ros1/joy_arm.yaml"/>
+        <param name="model_urdf" value="$(find hex_ros_urdf_archer_y6)/urdf/empty.urdf"/>
+        <param name="use_sim_time" value="$(arg use_sim_time)"/>
+        <remap from="manip_state" to="manip_state"/>
+        <remap from="manip_ctrl" to="manip_ctrl"/>
+        <remap from="teleop_joy_state" to="teleop_joy_state"/>
+    </node>
+
+    <!-- package-owned RViz and robot state publisher -->
+    <group if="$(arg rviz)">
+        <!-- ROS 1 robot_state_publisher reads the global parameter. -->
+        <param name="robot_description"
+               command="$(find xacro)/xacro $(find hex_ros_urdf_archer_y6)/urdf/gr100_full.urdf"/>
+        <node name="joy_arm_robot_state_publisher"
+              pkg="robot_state_publisher"
+              type="robot_state_publisher"
+              output="screen">
+            <param name="use_sim_time" value="$(arg use_sim_time)"/>
+        </node>
+        <node name="joy_arm_rviz"
+              pkg="rviz"
+              type="rviz"
+              args="-d $(find hex_ros_demo_joystick)/config/ros1/joy_arm.rviz"
+              output="screen">
+            <param name="use_sim_time" value="$(arg use_sim_time)"/>
+        </node>
+    </group>
+</launch>

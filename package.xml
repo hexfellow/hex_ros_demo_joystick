@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>hex_ros_demo_joystick</name>
+  <version>0.0.0</version>
+  <description>Joystick-controlled MuJoCo arm demo.</description>
+  <maintainer email="dzr159@gmail.com">Dong Zhaorui</maintainer>
+  <license>Apache-2.0</license>
+  <depend condition="$ROS_VERSION == 1">rospy</depend>
+  <depend condition="$ROS_VERSION == 2">rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>hex_ros_msgs</depend>
+  <exec_depend>hex_ros_teleop_joystick</exec_depend>
+  <exec_depend>hex_ros_sim_archer_y6</exec_depend>
+  <exec_depend>hex_ros_urdf_archer_y6</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 2">rviz2</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 1">rviz</exec_depend>
+  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+  <export>
+    <build_type condition="$ROS_VERSION == 2">ament_python</build_type>
+  </export>
+</package>

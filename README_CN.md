@@ -1,4 +1,5 @@
 # hex_ros_demo_joystick
+**中文** | [English](README.md)
 
 ## 目录
 

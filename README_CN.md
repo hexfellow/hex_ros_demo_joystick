@@ -17,6 +17,7 @@
 `hex_ros_demo_joystick` 是基于手柄控制的 ROS demo 包。
 - 本阶段仅支持 MuJoCo。
 - 包含一个手柄控制机械臂的节点。
+- 当前仅提供 `sim_joy_arm` 仿真启动入口，暂不提供真实机械臂启动入口。
 ## 2. 包结构
 
 ```text
@@ -179,7 +180,7 @@ source install/setup.bash
 
 ### 4. 使用包
 
-本包的 launch 会启动 MuJoCo、手柄读取节点、`joy_arm` 和本包的 RViz 配置。参数文件和 RViz 配置分别为：
+本包的 launch 会启动 MuJoCo、手柄读取节点、`joy_arm` 和本包的 RViz 配置。当前仅支持 `sim_joy_arm`，不连接真实机械臂。参数文件和 RViz 配置分别为：
 
 ```text
 config/<ros_version>/joy_arm.yaml

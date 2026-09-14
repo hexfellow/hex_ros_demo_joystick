@@ -18,6 +18,7 @@
 
 - This package currently supports MuJoCo only.
 - It provides a joystick-controlled arm node.
+- It currently provides only the `sim_joy_arm` simulation launch; no real-arm launch is provided.
 
 ## 2. Package Structure
 
@@ -178,7 +179,7 @@ source install/setup.bash
 
 ### 4. Use the Package
 
-The launch file starts MuJoCo, joystick input, `joy_arm`, and the RViz configuration owned by this package. The parameter and RViz files are:
+The launch file starts MuJoCo, joystick input, `joy_arm`, and the RViz configuration owned by this package. The package currently supports `sim_joy_arm` only and does not connect to a real arm. The parameter and RViz files are:
 
 ```text
 config/<ros_version>/joy_arm.yaml

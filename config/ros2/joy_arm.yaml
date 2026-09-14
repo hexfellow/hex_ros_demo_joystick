@@ -1,4 +1,4 @@
-joy_arm:
+/**/joy_arm:
   ros__parameters:
     control_rate: 1000.0  # control-loop frequency used to calculate dt [Hz]
     model_urdf: ""  # robot URDF path for FK/IK

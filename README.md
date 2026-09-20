@@ -1,66 +1,163 @@
-# hex_ros_demo_joystick
+# hex_ros_demo_joystick — Joystick Arm-Control Demo
+
 [中文](README_cn.md) | **English**
 
 ## Table of Contents
 
-- [1. About](#1-about)
-- [2. Package Structure](#2-package-structure)
-- [3. Topics](#3-topics)
-- [4. Joystick Mapping](#4-joystick-mapping)
-- [5. Control Modes](#5-control-modes)
-- [6. Parameters](#6-parameters)
-- [7. Dependencies](#7-dependencies)
-- [8. Quick Start](#8-quick-start)
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Topics](#topics)
+- [Joystick Mapping](#joystick-mapping)
+- [Parameters](#parameters)
+- [Project Structure](#project-structure)
 
-## 1. About
+## Overview
 
-`hex_ros_demo_joystick` is a ROS demo package for controlling an Archer Y6 arm with a joystick.
+`hex_ros_demo_joystick` demonstrates joystick teleoperation for an Archer Y6. It reads a Linux joystick, converts end-effector translation, rotation, and gripper input into arm commands, and executes the commands in MuJoCo with target visualization.
 
-- This package currently supports MuJoCo only.
-- It provides a joystick-controlled arm node.
-- It currently provides only the `sim_joy_arm` simulation launch; no real-arm launch is provided.
+It provides:
 
-## 2. Package Structure
+- one launch for MuJoCo, joystick input, arm control, and RViz;
+- Cartesian position and orientation control;
+- gripper, reset, and exit button mappings.
+
+The current launch target is MuJoCo simulation. This package supports **ROS 2 Humble** and is compatible with **ROS 1 Noetic**.
+
+## Quick Start
+
+> Complete [Installation](#installation) before launching.
+
+### 1. Launch the Simulation
+
+`sim_joy_arm` starts MuJoCo, joystick input, `joy_arm`, and the RViz configuration owned by this package. The parameter and RViz files are:
 
 ```text
-hex_ros_demo_joystick/
-├── arm_utils/                         # ROS 1 / ROS 2 interface implementations
-│   ├── interface_base.py              # Common interface and message queues
-│   ├── ros1_interface.py              # ROS 1 rospy implementation
-│   └── ros2_interface.py              # ROS 2 rclpy implementation
-├── config/
-│   ├── ros1/
-│   │   ├── joy_arm.yaml               # ROS 1 joy_arm parameters
-│   │   └── joy_arm.rviz               # ROS 1 RViz configuration
-│   └── ros2/
-│       ├── joy_arm.yaml               # ROS 2 joy_arm parameters
-│       └── joy_arm.rviz               # ROS 2 RViz configuration
-├── launch/
-│   ├── ros1/sim_joy_arm.launch        # ROS 1 simulation launch
-│   └── ros2/sim_joy_arm.launch.py     # ROS 2 simulation launch
-├── hex_ros_demo_joystick/
-│   └── joy_arm.py                     # Joystick arm control node
-├── resource/hex_ros_demo_joystick
-├── CMakeLists.txt
-├── package.xml
-├── setup.py
-└── README_CN.md
+config/<ros_version>/joy_arm.yaml
+config/<ros_version>/joy_arm.rviz
 ```
 
-## 3. Topics
+The joystick input node reads `device_path` from the `hex_ros_teleop_joystick` parameter file. Its empty default auto-detects the first joystick, so launch directly first:
+
+**ROS 2:**
+
+```shell
+ros2 launch hex_ros_demo_joystick sim_joy_arm.launch.py viewer:=true rviz:=true
+```
+
+**ROS 1:**
+
+```shell
+roslaunch hex_ros_demo_joystick sim_joy_arm.launch viewer:=true rviz:=true
+```
+
+If auto-detection fails or multiple input devices are present, list stable device paths:
+
+```shell
+ls -l /dev/input/by-id/
+```
+
+Then set `device_path` in the applicable downstream parameter file in the source workspace:
+
+```text
+# ROS 2
+<your_ws>/src/hex_ros_teleop_joystick/config/ros2/params.yaml
+
+# ROS 1
+<your_ws>/src/hex_ros_teleop_joystick/config/ros1/params.yaml
+```
+
+For example:
+
+```yaml
+device_path: "/dev/input/by-id/<joystick-device>"
+```
+
+For ROS 2, keep the parameter under `/**/teleop_joystick.ros__parameters`. Rebuild and source the workspace after changing it.
+
+You may also use `/dev/input/eventX`; determine `X` with `ls -l /dev/input/` or from the `by-id` symlink target. An incorrect path prevents the joystick input node from operating correctly.
+
+If the path exists but cannot be opened, check the current user's read permission and device-group membership; do not bypass device access control with overly broad permissions. If the terminal prints `no joystick device found`, the launch may remain running but no valid joystick state is published. Fix the path or permissions first, then verify input with `ros2 topic echo /teleop_joy_state` (ROS 1: `rostopic echo /teleop_joy_state`).
+
+Launch arguments:
+
+| Argument | Default | Description |
+|---|---|---|
+| `viewer` | `true` | Start the MuJoCo viewer. |
+| `rviz` | `true` | Start the RViz instance owned by this package. |
+| `use_sim_time` | `true` | Use simulation time. |
+
+After launch, the simulated arm first moves automatically to `stable_joint`. Normal joystick control begins after the terminal prints `initial position reached; entering work mode`.
+
+Kinematics and simulation use `empty.urdf`; RViz displays `gr100_full.urdf`.
+
+## Installation
+
+### Prerequisites
+
+- **ROS 2 Humble** is installed; use **ROS 1 Noetic** for ROS 1 compatibility.
+- Python 3, `pip3`, Git, and the build tools for the selected ROS version are installed.
+- A compatible Linux input joystick is connected.
+
+### 1. Install Python Dependencies
+
+```shell
+pip3 install \
+    'hex-util-msg>=0.1.0' \
+    'hex-util-ros>=0.1.0' \
+    'hex-driver-robot>=0.1.0' \
+    evdev
+```
+
+### 2. Create and Enter the Workspace
+
+```shell
+mkdir -p <your_ws>/src
+cd <your_ws>/src
+```
+
+### 3. Clone ROS Packages
+
+```shell
+git clone https://github.com/hexfellow/hex_ros_msgs.git
+git clone https://github.com/hexfellow/hex_ros_demo_joystick.git
+git clone https://github.com/hexfellow/hex_ros_teleop_joystick.git
+git clone https://github.com/hexfellow/hex_ros_sim_archer_y6.git
+git clone https://github.com/hexfellow/hex_ros_urdf_archer_y6.git
+```
+
+### 4. Build
+
+**ROS 2:**
+
+```shell
+source /opt/ros/humble/setup.bash
+cd <your_ws>
+colcon build
+source install/setup.bash
+```
+
+**ROS 1:**
+
+```shell
+source /opt/ros/noetic/setup.bash
+cd <your_ws>
+catkin_make
+source devel/setup.bash
+```
+
+## Topics
 
 | Direction | Topic | Type | Description |
 |---|---|---|---|
-| Subscribe | `manip_state` | `hex_ros_msgs/(msg/)HexRosRoboManipStateStamped` | Arm and gripper state |
-| Subscribe | `teleop_joy_state` | `hex_ros_msgs/(msg/)HexRosTeleopJoystickStateStamped` | Joystick state |
-| Publish | `manip_ctrl` | `hex_ros_msgs/(msg/)HexRosRoboManipCtrlStamped` | Arm and gripper MIT/JNT control command |
-| Publish | `target_marker_array` | `visualization_msgs/(msg/)MarkerArray` | Target position sphere and target axes |
+| Subscribe | `manip_state` | `hex_ros_msgs/msg/HexRosRoboManipStateStamped` | Robot arm state message |
+| Subscribe | `teleop_joy_state` | `hex_ros_msgs/msg/HexRosTeleopJoystickStateStamped` | Joystick state message |
+| Publish | `manip_ctrl` | `hex_ros_msgs/msg/HexRosRoboManipCtrlStamped` | Robot arm control message |
+| Publish | `target_marker_array` | `visualization_msgs/msg/MarkerArray` | Target pose marker message |
 
 The target visualization uses the `base_link` frame. The yellow sphere represents the target position, and the red, green, and blue arrows represent the target local X, Y, and Z axes. The markers represent the target state, not measured end-effector feedback. The actual end-effector state is represented by `joint_states` and TF.
 
-## 4. Joystick Mapping
-
-### Arm
+## Joystick Mapping
 
 | Input | Function |
 |---|---|
@@ -74,24 +171,15 @@ The target visualization uses the `base_link` frame. The yellow sphere represent
 | `btn_b` | Return to `stable_joint` |
 | `btn_x` | Exit the node |
 
+## Parameters
 
-## 5. Control Modes
-
-- Arm: JNT during initialization and reset; MIT during the work phase.
-- Gripper: JNT during initialization and reset; MIT during the work phase.
-
-### MIT Mode Warning
-
-Incorrect `kp`/`kd` values may cause violent motion or equipment damage.
-
-> Operate in a safe area with emergency stop accessible.
-
-## 6. Parameters
+Defaults come from `config/<ros_version>/joy_arm.yaml`; launch sets `model_urdf`. Initialization/reset uses JNT; the work phase uses MIT.
 
 | Parameter | Default | Description |
 |---|---:|---|
 | `control_rate` | `1000.0` | Control-loop frequency used to calculate `dt` |
 | `model_urdf` | `""` | URDF path used by joy_arm FK/IK |
+| `model_frame_id` | `base_link` | Frame ID for target markers |
 | `pose_end_in_flange` | `[0.187, 0, 0, 1, 0, 0, 0]` | End pose relative to the flange |
 | `joystick_deadzone` | `0.1` | Deadzone for analog joystick LX/LY/RX/RY |
 | `joystick_linear_xy` | `1.0` | Scale from LX/LY to target X/Y instantaneous linear velocity |
@@ -111,113 +199,38 @@ Incorrect `kp`/`kd` values may cause violent motion or equipment damage.
 | `gripper_enabled` | `true` | Enable gripper control target generation |
 | `gripper_target` | `0.6` | Gripper target while A is held |
 
-## 7. Dependencies
-
-### Python Packages
-
-```shell
-pip3 install 'hex-util-msg>=0.1.0'
-pip3 install 'hex-util-ros>=0.1.0a4'
-pip3 install 'hex-driver-robot>=0.1.1'
-```
-
-### ROS Packages
-
-Create a workspace and clone the required repositories:
-
-```shell
-mkdir -p <your_ws>/src
-cd <your_ws>/src
-
-git clone https://github.com/hexfellow/hex_ros_msgs.git
-git clone https://github.com/hexfellow/hex_ros_demo_joystick.git
-git clone https://github.com/hexfellow/hex_ros_teleop_joystick.git
-git clone https://github.com/hexfellow/hex_ros_sim_archer_y6.git
-git clone https://github.com/hexfellow/hex_ros_urdf_archer_y6.git
-```
-
-- `hex_ros_msgs` provides the arm, gripper, and joystick message definitions.
-- `hex_ros_demo_joystick` provides the `joy_arm` control node.
-- `hex_ros_teleop_joystick` reads the system joystick and publishes `teleop_joy_state`.
-- `hex_ros_sim_archer_y6` provides the Archer Y6 MuJoCo simulation and `manip_state`.
-- `hex_ros_urdf_archer_y6` provides `empty.urdf` for FK/IK and `gr100_full.urdf` for RViz display.
-
-The ROS distribution must also provide `robot_state_publisher`, `rviz` or `rviz2`, and `visualization_msgs`. This package currently supports MuJoCo simulation only and does not connect to a real robot or a ZMQ server.
-
-## 8. Quick Start
-
-### 1. Create Workspace
-
-```shell
-mkdir -p <your_ws>/src
-cd <your_ws>/src
-```
-
-### 2. Clone Repositories
-
-Run the five `git clone` commands from Section 6. All repositories must be placed under the same workspace `src/` directory.
-
-### 3. Build Workspace
-
-**ROS 1:**
-
-```shell
-source /opt/ros/noetic/setup.bash
-cd <your_ws>
-catkin_make
-source devel/setup.bash
-```
-
-**ROS 2:**
-
-```shell
-source /opt/ros/humble/setup.bash
-cd <your_ws>
-colcon build
-source install/setup.bash
-```
-
-### 4. Use the Package
-
-The launch file starts MuJoCo, joystick input, `joy_arm`, and the RViz configuration owned by this package. The package currently supports `sim_joy_arm` only and does not connect to a real arm. The parameter and RViz files are:
+## Project Structure
 
 ```text
-config/<ros_version>/joy_arm.yaml
-config/<ros_version>/joy_arm.rviz
+hex_ros_demo_joystick/
+├── config/
+│   ├── ros1/
+│   │   ├── joy_arm.rviz                     # ROS 1 RViz configuration
+│   │   └── joy_arm.yaml                     # ROS 1 node parameters
+│   └── ros2/
+│       ├── joy_arm.rviz                     # ROS 2 RViz configuration
+│       └── joy_arm.yaml                     # ROS 2 node parameters
+├── hex_ros_demo_joystick/
+│   ├── arm_utils/
+│   │   ├── __init__.py                      # arm_utils package initializer
+│   │   ├── interface_base.py                # ROS interface base class
+│   │   ├── ros1_interface.py                # ROS 1 interface
+│   │   └── ros2_interface.py                # ROS 2 interface
+│   ├── __init__.py                          # Python package initializer
+│   └── joy_arm.py                           # Joystick control node
+├── launch/
+│   ├── ros1/
+│   │   └── sim_joy_arm.launch               # ROS 1 simulation launch file
+│   └── ros2/
+│       └── sim_joy_arm.launch.py            # ROS 2 simulation launch file
+├── resource/
+│   └── hex_ros_demo_joystick
+├── .gitignore
+├── CMakeLists.txt
+├── LICENSE
+├── package.xml
+├── README_cn.md
+├── README.md
+├── setup.cfg
+└── setup.py
 ```
-
-**ROS 2:**
-
-```shell
-ros2 launch hex_ros_demo_joystick sim_joy_arm.launch.py \
-    viewer:=true rviz:=true device_path:=/dev/input/eventX
-```
-
-**ROS 1:**
-
-```shell
-source /home/hexfellow/work/uv.sh
-roslaunch hex_ros_demo_joystick sim_joy_arm.launch \
-    viewer:=true rviz:=true device_path:=/dev/input/eventX
-```
-
-Launch arguments:
-
-| Argument | Description |
-|---|---|
-| `viewer` | Start the MuJoCo viewer. |
-| `rviz` | Start the RViz instance owned by this package. |
-| `device_path` | Joystick device path; leave empty for automatic detection. |
-| `use_sim_time` | Use simulation time; set this to `true` for simulation. |
-
-Current model configuration:
-
-```text
-joy_arm FK/IK model: empty.urdf
-MuJoCo model URDF: empty.urdf
-RViz visual model: gr100_full.urdf
-```
-
-`empty.urdf` must be used by both `joy_arm` FK/IK and the MuJoCo state calculation so that they use the same kinematic model. `gr100_full.urdf` is used only for the RViz RobotModel display.
-
-Leave `device_path` empty to auto-detect the first joystick. This package currently supports MuJoCo simulation only and does not provide a real-arm launch.

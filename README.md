@@ -1,5 +1,4 @@
-# hex_ros_demo_joystick — Joystick Arm-Control Demo
-
+# hex_ros_demo_joystick
 [中文](README_cn.md) | **English**
 
 ## Table of Contents

@@ -1,5 +1,4 @@
-# hex_ros_demo_joystick — 手柄控制机械臂演示
-
+# hex_ros_demo_joystick
 **中文** | [English](README.md)
 
 ## 目录

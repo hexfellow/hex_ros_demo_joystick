@@ -9,7 +9,6 @@
     <!-- launch arguments -->
     <arg name="viewer" default="true"/>
     <arg name="rviz" default="true"/>
-    <arg name="device_path" default=""/>
     <arg name="use_sim_time" default="true"/>
 
     <!-- MuJoCo simulation -->
@@ -25,7 +24,6 @@
           type="teleop_joystick.py"
           output="screen">
         <rosparam file="$(find hex_ros_teleop_joystick)/config/ros1/params.yaml"/>
-        <param name="device_path" value="$(arg device_path)"/>
         <param name="use_sim_time" value="$(arg use_sim_time)"/>
         <remap from="teleop_joy_state" to="teleop_joy_state"/>
     </node>

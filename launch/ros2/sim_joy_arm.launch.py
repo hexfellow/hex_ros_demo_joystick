@@ -38,10 +38,6 @@ def generate_launch_description():
         default_value='true',
         choices=['true', 'false'],
         description='Flag to turn on RViz')
-    device_path_arg = DeclareLaunchArgument(
-        name='device_path',
-        default_value='',
-        description='Joystick input device path')
     use_sim_time_arg = DeclareLaunchArgument(
         name='use_sim_time',
         default_value='true',
@@ -82,7 +78,6 @@ def generate_launch_description():
         parameters=[
             joystick_param_path,
             {
-                'device_path': LaunchConfiguration('device_path'),
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
             },
         ],
@@ -175,7 +170,6 @@ def generate_launch_description():
     return LaunchDescription([
         viewer_arg,
         rviz_arg,
-        device_path_arg,
         use_sim_time_arg,
         sim_launch,
         joystick_node,
